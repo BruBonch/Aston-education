@@ -3,15 +3,16 @@ package task1;
 public class Bowl {
     private int feedAmount = 0;
 
-    public int getFeedAmount() {
-        return feedAmount;
+    public void pourFoodInBowl(int feedAmount) {
+        this.feedAmount = feedAmount;
     }
 
-    public void pourFoodInBowl() {
-        feedAmount = 50;
-    }
-
-    public void eatFromBowl(int amountFoodEaten) {
-        feedAmount -= amountFoodEaten;
+    public boolean eatFromBowl(int amountFoodEaten) {
+        if ((feedAmount - amountFoodEaten) < 0) {
+            return false;
+        } else {
+            feedAmount -= amountFoodEaten;
+            return true;
+        }
     }
 }

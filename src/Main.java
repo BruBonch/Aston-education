@@ -21,14 +21,12 @@ public class Main {
         }};
 
         Bowl bowl = new Bowl();
-        bowl.pourFoodInBowl();
+        bowl.pourFoodInBowl(50);
 
         // коты идут кушать
         for (Cat cat : cats) {
             cat.eat(bowl);
         }
-
-        System.out.println("----------------------------------------------");
 
         // смотрим кому хватило еды
         for (Cat cat : cats) {
