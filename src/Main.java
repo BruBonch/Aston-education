@@ -47,13 +47,16 @@ public class Main {
 
 
         System.out.println("Task 2");
-        Measurable rectangle = new Rectangle("green", "black", 10, 15);
+        Rectangle rectangle = new Rectangle(10, 15);
+        rectangle.setColor("green", "black");
         rectangle.printInfo();
 
-        Measurable triangle = new Triangle("black", "pink", 10, 12, 14, 8);
+        Triangle triangle = new Triangle(10, 12, 14, 8);
+        triangle.setColor("black", "pink");
         triangle.printInfo();
 
-        Measurable circle = new Circle("blue", "red", 4);
+        Circle circle = new Circle(4);
+        circle.setColor("blue", "red");
         circle.printInfo();
     }
 }

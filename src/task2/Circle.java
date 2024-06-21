@@ -1,14 +1,17 @@
 package task2;
 
-public class Circle implements Measurable {
+public class Circle implements Measurable, Colorable {
     private String backgroundColor;
     private String borderColor;
     private double r;
 
-    public Circle(String backgroundColor, String borderColor, double r) {
+    public Circle(double r) {
+        this.r = r;
+    }
+
+    public void setColor(String backgroundColor, String borderColor) {
         this.backgroundColor = backgroundColor;
         this.borderColor = borderColor;
-        this.r = r;
     }
 
     public double areaCalculation() {
