@@ -3,7 +3,10 @@ package pages;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
 import java.util.List;
 
 public class PayComponent {
@@ -14,10 +17,15 @@ public class PayComponent {
     private By paySumInputLocator = By.xpath(basePathComponent + "//input[@id='connection-sum']");
     private By emailInputLocator = By.xpath(basePathComponent + "//input[@id='connection-email']");
     private By payPartnersLocator = By.xpath(basePathComponent + "//div[@class='pay__partners']");
+    private By submitPayConnectionBtn = By.xpath(basePathComponent + "//form[@id='pay-connection']//button[@type='submit']");
     private By serviceInfoLocator = By.xpath(basePathComponent + "//a[text() = 'Подробнее о сервисе']");
 
     public PayComponent(WebDriver driver) {
         this.driver = driver;
+    }
+
+    public void rejectCookies() {
+        driver.findElement(By.xpath("//button[contains(@class, 'cookie__cancel')]")).click();
     }
 
     public String getComponentTitle() {
@@ -28,4 +36,25 @@ public class PayComponent {
         return driver.findElement(payPartnersLocator).findElements(By.xpath(".//img"));
     }
 
+    public String getUrlAfterClickOnServiceInfo() {
+        try {
+            driver.findElement(serviceInfoLocator).click();
+            return driver.getCurrentUrl();
+        } finally {
+            driver.navigate().back();
+        }
+    }
+
+    public WebElement getPayedFrame() {
+        driver.findElement(phoneNumberInputLocator).sendKeys("297777777");
+        driver.findElement(paySumInputLocator).sendKeys("10");
+        driver.findElement(emailInputLocator).sendKeys("test@mail.ru");
+        driver.findElement(submitPayConnectionBtn).click();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+
+        return wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.xpath("//iframe[@class='bepaid-iframe']"))
+        );
+    }
 }
