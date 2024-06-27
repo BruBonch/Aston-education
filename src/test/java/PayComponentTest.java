@@ -1,5 +1,4 @@
-import org.openqa.selenium.Dimension;
-import org.openqa.selenium.JavascriptExecutor;
+
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -10,7 +9,7 @@ import org.testng.annotations.Test;
 import pages.PayComponent;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+
 
 public class PayComponentTest {
     WebDriver driver;
@@ -21,6 +20,7 @@ public class PayComponentTest {
         driver = new ChromeDriver();
         driver.get("http://mts.by");
         payComponent = new PayComponent(driver);
+        payComponent.rejectCookies();
     }
     @Test
     public void checkComponentTitle() {
@@ -40,9 +40,22 @@ public class PayComponentTest {
         }
     }
 
+    @Test
+    public void checkClickOnLinkServiceInfo() {
+        String urlAfterClick = payComponent.getUrlAfterClickOnServiceInfo();
+        Assert.assertEquals(
+                urlAfterClick,
+                "https://www.mts.by/help/poryadok-oplaty-i-bezopasnost-internet-platezhey/");
+    }
+
+    @Test
+    public void checkDisplayedPayedFrame() {
+        WebElement payedFrame = payComponent.getPayedFrame();
+        Assert.assertTrue(payedFrame.isDisplayed());
+    }
+
     @AfterClass
     public void tearDown() {
-//        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
         driver.quit();
     }
 }
