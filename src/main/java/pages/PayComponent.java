@@ -7,6 +7,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PayComponent {
@@ -19,6 +20,7 @@ public class PayComponent {
     private By payPartnersLocator = By.xpath(basePathComponent + "//div[@class='pay__partners']");
     private By submitPayConnectionBtn = By.xpath(basePathComponent + "//form[@id='pay-connection']//button[@type='submit']");
     private By serviceInfoLocator = By.xpath(basePathComponent + "//a[text() = 'Подробнее о сервисе']");
+    private By changeServicesBtn = By.xpath(basePathComponent + "//div[@class='select']");
 
     public PayComponent(WebDriver driver) {
         this.driver = driver;
@@ -56,5 +58,44 @@ public class PayComponent {
         return wait.until(
                 ExpectedConditions.visibilityOfElementLocated(By.xpath("//iframe[@class='bepaid-iframe']"))
         );
+    }
+
+    public void closePayedFrame() {
+        WebElement frame = driver.findElement(By.xpath("//iframe[@class='bepaid-iframe']"));
+
+        driver.switchTo().frame(frame);
+        driver.findElement(By.xpath("//div[@class='header__close-button']")).click();
+        driver.switchTo().defaultContent();
+    }
+
+    private void changePaymentServices(String serviceTitle) {
+        driver.findElement(changeServicesBtn).click();
+        List<WebElement> selectList = driver.
+                findElements(By.xpath(basePathComponent + "//ul//li[@class='select__item']"));
+
+        for (WebElement select : selectList) {
+            if (select.getText().equalsIgnoreCase(serviceTitle)) {
+                select.click();
+                break;
+            }
+        }
+    }
+
+    private List<WebElement> getFieldsFromActivePayedForm() {
+      return driver.findElements(By.xpath(
+                basePathComponent + "//form[contains(@class, 'opened')]//input"
+        ));
+    };
+
+
+    public List<String> getFieldPlaceholdersActiveForm(String serviceTitle) {
+        List<String> fieldPlaceholders = new ArrayList<>();
+        changePaymentServices(serviceTitle);
+
+        for(WebElement field : getFieldsFromActivePayedForm()) {
+            fieldPlaceholders.add(field.getAttribute("placeholder"));
+        }
+
+        return fieldPlaceholders;
     }
 }
