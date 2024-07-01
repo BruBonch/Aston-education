@@ -37,6 +37,12 @@ public class PayComponent {
         return driver.findElement(payPartnersLocator).findElements(By.xpath(".//img"));
     }
 
+    public List<WebElement> getLogoPayPartnersListFromPayedFrame() {
+        return driver.findElement(
+                By.xpath("//form[contains(@class, 'ng-tns-c61-0')]//div[contains(@class, 'cards-brands')]")
+        ).findElements(By.xpath(".//img"));
+    }
+
     public String getUrlAfterClickOnServiceInfo() {
         try {
             driver.findElement(serviceInfoLocator).click();
@@ -47,14 +53,6 @@ public class PayComponent {
     }
 
     public WebElement getPayedFrame() {
-
-        // изменить метод так, чтобы он сразу после всех проверок переключал драйвер на фрейм
-        // и назвать его например switch payed frame
-        // тогда получится для получения (и переключения на платежный фрэйм) нужно будет вызвать свитч пэйд фрэйм
-        // а для закрытия просто клосе пэйд фрэйм, который будет закрывать закрывать открытый фрэйм
-        // и переключаться обратно
-
-
         driver.findElement(phoneNumberInputLocator).sendKeys("297777777");
         driver.findElement(paySumInputLocator).sendKeys("10");
         driver.findElement(emailInputLocator).sendKeys("test@mail.ru");
@@ -70,11 +68,6 @@ public class PayComponent {
         wait.until(
                 ExpectedConditions.elementToBeClickable(
                         By.xpath("//div[contains(@class, 'app-wrapper__content-container')]")));
-
-        // здесь нужны 2 проверки, 1я чтобы убедиться что фрэйм в принципе доступен для выбора,
-        // 2я чтобы убедиться что асинхронный код внутри фрэйма подгрузился
-        // и тогда будет 100% рабочий фрэйм в котором всё можно найти
-
         return frame;
     }
 
@@ -139,7 +132,7 @@ public class PayComponent {
         return fieldPlaceholders;
     }
 
-    public Map<String, String> getValueFieldFromPayedFrame() {
+    public Map<String, String> getValueFieldsFromPayedFrame() {
         Map<String, String> payInfo = new HashMap<>();
 
         // получить полностью текст с видом услуги и номером телефона, чтобы дальше извлечь оттуда только номер
@@ -172,6 +165,31 @@ public class PayComponent {
         return payInfo;
     }
 
+    public Map<String, String> getLabelFieldsFromPayedFrame() {
+        Map<String, String> cardInfo = new HashMap<>();
 
+        String cardNumberLabel = driver.findElement(
+                By.xpath("//form[contains(@class, 'ng-tns-c61-0')]//div[@class='content ng-tns-c46-1']//label")
+        ).getText();
+
+        String validityPeriodLabel = driver.findElement(
+                By.xpath("//form[contains(@class, 'ng-tns-c61-0')]//div[@class='content ng-tns-c46-4']//label")
+        ).getText();
+
+        String cvcLabel = driver.findElement(
+                By.xpath("//form[contains(@class, 'ng-tns-c61-0')]//div[@class='content ng-tns-c46-5']//label")
+        ).getText();
+
+        String holderNameLabel = driver.findElement(
+                By.xpath("//form[contains(@class, 'ng-tns-c61-0')]//div[@class='content ng-tns-c46-3']//label")
+        ).getText();
+
+        cardInfo.put("cardNumberLabel", cardNumberLabel);
+        cardInfo.put("validityPeriodLabel", validityPeriodLabel);
+        cardInfo.put("cvcLabel", cvcLabel);
+        cardInfo.put("holderNameLabel", holderNameLabel);
+
+        return cardInfo;
+    }
 
 }
