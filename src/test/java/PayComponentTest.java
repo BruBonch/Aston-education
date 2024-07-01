@@ -1,3 +1,4 @@
+import Util.Utilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -8,6 +9,7 @@ import org.testng.annotations.Test;
 import pages.PayComponent;
 
 import java.util.List;
+import java.util.Map;
 
 
 public class PayComponentTest {
@@ -21,13 +23,19 @@ public class PayComponentTest {
         payComponent = new PayComponent(driver);
         payComponent.rejectCookies();
     }
-    @Test()
+
+    @AfterClass
+    public void tearDown() {
+        driver.quit();
+    }
+
+    @Test
     public void checkComponentTitle() {
         String componentTitle = payComponent.getComponentTitle();
         Assert.assertEquals(componentTitle, "Онлайн пополнение без комиссии");
     }
 
-    @Test()
+    @Test
     public void checkDisplayedPayPartnersLogo() {
         List<WebElement> logoPayPartnersList = payComponent.getLogoPayPartnersList();
 
@@ -39,7 +47,7 @@ public class PayComponentTest {
         }
     }
 
-    @Test()
+    @Test
     public void clickOnLinkServiceInfo() {
         String urlAfterClick = payComponent.getUrlAfterClickOnServiceInfo();
         Assert.assertEquals(
@@ -47,15 +55,43 @@ public class PayComponentTest {
                 "https://www.mts.by/help/poryadok-oplaty-i-bezopasnost-internet-platezhey/");
     }
 
-    @Test()
+    @Test
     public void checkDisplayedPayedFrame() {
         WebElement payedFrame = payComponent.getPayedFrame();
         Assert.assertTrue(payedFrame.isDisplayed());
         payComponent.closePayedFrame();
     }
 
+    @Test
+    public void checkPayInfo() {
+        String phoneNumber = "297777777";
+        String price = "20";
+
+        payComponent.switchPayedFrame(phoneNumber, price);
+        Map<String,String> result = payComponent.getValueFieldFromPayedFrame();
+        System.out.println(result);
+
+        for (Map.Entry<String, String> entry : result.entrySet()) {
+            switch (entry.getKey()) {
+                case "phoneNumber" :
+                    Assert.assertEquals(entry.getValue(), phoneNumber);
+                    break;
+                case "price" :
+                case "priceOnButton" :
+                    // создал специально класс для вспомогательных методов
+                    // т.к даже при указании целой сумму, в итоге все равно получается сумма с плавающей точкой
+                    // сделал отдельно метод, чтобы сравнивать введённую сумму и полученную из фрейма
+                    // возможно это лишнее, просто захотелось попробовать
+                    Assert.assertEquals(entry.getValue(), Utilities.getFloatingPointPaySum(price));
+                    break;
+            }
+        }
+
+        payComponent.closePayedFrame();
+    }
+
     // далее будет 4 очень похожих метода, не придумал как можно более универсально сделать
-    // какое то количество данных в теле всё таки меняется, поэтому решил сделать так
+    // какое то количество кода в теле всё таки меняется, поэтому решил сделать так
     @Test
     public void checkPlaceholdersConnectionPayedForm() {
         List<String> fieldsPlaceholders = payComponent.getFieldPlaceholdersActiveForm("Услуги связи");
@@ -138,10 +174,5 @@ public class PayComponentTest {
                     Assert.assertTrue(false, placeholder + " написан неверно");
             }
         }
-    }
-
-    @AfterClass
-    public void tearDown() {
-        driver.quit();
     }
 }
