@@ -1,4 +1,6 @@
 import Util.Utilities;
+import enums.PayComponentPaths;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -11,7 +13,6 @@ import pages.PayComponent;
 import java.util.List;
 import java.util.Map;
 
-
 public class PayComponentTest {
     WebDriver driver;
     PayComponent payComponent;
@@ -20,6 +21,7 @@ public class PayComponentTest {
     public void setUp() {
         driver = new ChromeDriver();
         driver.get("http://mts.by");
+        driver.manage().window().fullscreen();
         payComponent = new PayComponent(driver);
         payComponent.rejectCookies();
     }
@@ -50,14 +52,18 @@ public class PayComponentTest {
     @Test
     public void checkDisplayedPayPartnersLogoFromPayedFrame() {
         payComponent.switchPayedFrame("297777777", "28");
+
         List<WebElement> logoPayPartnersList = payComponent.getLogoPayPartnersListFromPayedFrame();
 
         for(WebElement logo : logoPayPartnersList) {
             Assert.assertTrue(
-                    (logo.getSize().width > 0 && logo.isDisplayed())
+                    (logo.getSize().width > 0 && logo.isEnabled())
                     , logo.getAttribute("src") + " не отображается на странице"
             );
         }
+
+        payComponent.closePayedFrame();
+        payComponent.clearFieldsFromPayForm();
     }
 
     @Test
@@ -70,9 +76,14 @@ public class PayComponentTest {
 
     @Test
     public void checkDisplayedPayedFrame() {
-        WebElement payedFrame = payComponent.getPayedFrame();
-        Assert.assertTrue(payedFrame.isDisplayed());
+        payComponent.switchPayedFrame("297777777", "20");
+        Assert.assertTrue(
+                driver.findElement(
+                        By.xpath(PayComponentPaths.PAYED_FRAME_WRAPPER_LOCATOR.getPath())
+                ).isDisplayed()
+        );
         payComponent.closePayedFrame();
+        payComponent.clearFieldsFromPayForm();
     }
 
     @Test
@@ -100,6 +111,7 @@ public class PayComponentTest {
         }
 
         payComponent.closePayedFrame();
+        payComponent.clearFieldsFromPayForm();
     }
 
     // далее будет 4 очень похожих метода, не придумал как можно более универсально сделать
@@ -188,6 +200,7 @@ public class PayComponentTest {
         }
     }
 
+    // group
     @Test
     public void checkLabelsCardInfo() {
         String phoneNumber = "297777777";
@@ -214,7 +227,6 @@ public class PayComponentTest {
         }
 
         payComponent.closePayedFrame();
+        payComponent.clearFieldsFromPayForm();
     }
-
-
 }

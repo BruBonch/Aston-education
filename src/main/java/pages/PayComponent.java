@@ -1,5 +1,6 @@
 package pages;
 
+import enums.PayComponentPaths;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -11,30 +12,25 @@ import java.util.*;
 
 public class PayComponent {
     private WebDriver driver;
-    private String basePathComponent = "//section[@class='pay']";
-    private By componentTitleLocator = By.xpath(basePathComponent + "//h2");
-    private By phoneNumberInputLocator = By.xpath(basePathComponent + "//input[@id='connection-phone']");
-    private By paySumInputLocator = By.xpath(basePathComponent + "//input[@id='connection-sum']");
-    private By emailInputLocator = By.xpath(basePathComponent + "//input[@id='connection-email']");
-    private By payPartnersLocator = By.xpath(basePathComponent + "//div[@class='pay__partners']");
-    private By submitPayConnectionBtn = By.xpath(basePathComponent + "//form[@id='pay-connection']//button[@type='submit']");
-    private By serviceInfoLocator = By.xpath(basePathComponent + "//a[text() = 'Подробнее о сервисе']");
-    private By changeServicesBtn = By.xpath(basePathComponent + "//div[@class='select']");
 
     public PayComponent(WebDriver driver) {
         this.driver = driver;
     }
 
     public void rejectCookies() {
-        driver.findElement(By.xpath("//button[contains(@class, 'cookie__cancel')]")).click();
+        driver.findElement(By.xpath(PayComponentPaths.COOKIES_CANCEL_BTN_LOCATOR.getPath())).click();
     }
 
     public String getComponentTitle() {
-        return driver.findElement(componentTitleLocator).getText().replace('\n', ' ');
+        return driver.findElement(
+                        By.xpath(PayComponentPaths.COMPONENT_TITLE_LOCATOR.getPath()))
+                .getText().replace('\n', ' ');
     }
 
     public List<WebElement> getLogoPayPartnersList() {
-        return driver.findElement(payPartnersLocator).findElements(By.xpath(".//img"));
+        return driver.findElement(
+                        By.xpath(PayComponentPaths.PAY_PARTNERS_LOCATOR.getPath()))
+                .findElements(By.xpath(PayComponentPaths.IMG_LOCATOR.getPath()));
     }
 
     public List<WebElement> getLogoPayPartnersListFromPayedFrame() {
@@ -45,67 +41,49 @@ public class PayComponent {
 
     public String getUrlAfterClickOnServiceInfo() {
         try {
-            driver.findElement(serviceInfoLocator).click();
+            driver.findElement(By.xpath(PayComponentPaths.SERVICE_INFO_LOCATOR.getPath())).click();
             return driver.getCurrentUrl();
         } finally {
             driver.navigate().back();
         }
     }
 
-    public WebElement getPayedFrame() {
-        driver.findElement(phoneNumberInputLocator).sendKeys("297777777");
-        driver.findElement(paySumInputLocator).sendKeys("10");
-        driver.findElement(emailInputLocator).sendKeys("test@mail.ru");
-        driver.findElement(submitPayConnectionBtn).click();
-
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-
-        WebElement frame =  wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.xpath("//iframe[@class='bepaid-iframe']"))
-        );
-
-        wait.until(
-                ExpectedConditions.elementToBeClickable(
-                        By.xpath("//div[contains(@class, 'app-wrapper__content-container')]")));
-        return frame;
-    }
-
     public void switchPayedFrame(String phoneNumber, String paySum) {
-        driver.findElement(phoneNumberInputLocator).sendKeys(phoneNumber);
-        driver.findElement(paySumInputLocator).sendKeys(paySum);
+        driver.findElement(By.xpath(PayComponentPaths.PHONE_NUMBER_INPUT_LOCATOR.getPath())).sendKeys(phoneNumber);
+        driver.findElement(By.xpath(PayComponentPaths.PAY_SUM_INPUT_LOCATOR.getPath())).sendKeys(paySum);
+        driver.findElement(By.xpath(PayComponentPaths.SUBMIT_PAY_CONNECTION_BTN_LOCATOR.getPath())).click();
 
-        driver.findElement(submitPayConnectionBtn).click();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-
+        // здесь 2 ожидания для того, чтобы успели подгрузиться асинхронные компоненты
+        // которые есть внутри платежного фрэйма
+        // по крайней мере, без второго ожидания у меня ничего не работало
         wait.until(
                 ExpectedConditions.frameToBeAvailableAndSwitchToIt(
-                        By.xpath("//iframe[@class='bepaid-iframe']")));
+                        By.xpath(PayComponentPaths.PAYED_FRAME_LOCATOR.getPath())
+                ));
 
         wait.until(
                 ExpectedConditions.elementToBeClickable(
-                        By.xpath("//div[contains(@class, 'app-wrapper__content-container')]")));
+                        By.xpath(PayComponentPaths.PAYED_FRAME_WRAPPER_LOCATOR.getPath())
+                ));
     }
 
     public void closePayedFrame() {
-//        WebElement frame = driver.findElement(By.xpath("//iframe[@class='bepaid-iframe']"));
-//
-//        driver.switchTo().frame(frame);
-
-        // здесь по идее вызов метода уже будет означать что драйвер переключен на платежный фрэйм
-        // поэтому без логики переключения, сразу закрытие и переключение на дэфольную страницу
-        driver.findElement(By.xpath("//div[@class='header__close-button']")).click();
+        driver.findElement(By.xpath(PayComponentPaths.PAYED_FRAME_CLOSE_BTN_LOCATOR.getPath())).click();
         driver.switchTo().defaultContent();
     }
 
     private void changePaymentServices(String serviceTitle) {
-        driver.findElement(changeServicesBtn).click();
+        driver.findElement(By.xpath(PayComponentPaths.CHANGE_SERVICES_BTN_LOCATOR.getPath())).click();
         List<WebElement> selectList = driver.
-                findElements(By.xpath(basePathComponent + "//ul//li[@class='select__item']"));
+                findElements(By.xpath(PayComponentPaths.PAYMENT_SERVICE_LIST_ITEM_LOCATOR.getPath()));
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(500));
 
         for (WebElement select : selectList) {
             if (select.getText().equalsIgnoreCase(serviceTitle)) {
+                wait.until(ExpectedConditions.elementToBeClickable(select));
                 select.click();
                 break;
             }
@@ -114,7 +92,7 @@ public class PayComponent {
 
     private List<WebElement> getFieldsFromActivePayedForm() {
         return driver.findElements(By.xpath(
-                basePathComponent + "//form[contains(@class, 'opened')]//input"
+                PayComponentPaths.ACTIVE_PAYED_FORM_LOCATOR.getPath()
         ));
     }
 
@@ -135,24 +113,23 @@ public class PayComponent {
     public Map<String, String> getValueFieldsFromPayedFrame() {
         Map<String, String> payInfo = new HashMap<>();
 
-        // получить полностью текст с видом услуги и номером телефона, чтобы дальше извлечь оттуда только номер
+        // получаю полностью текст с видом услуги и номером телефона, чтобы дальше извлечь оттуда только номер
         // lastIndexOf + 4 сделал для того чтобы отсеч код и оставить только цифры введённые пользователем
         String payDescription = driver.findElement(
-//                By.xpath("//div[contains(@class, 'pay-description')]//span[@class='pay-description__text']")
-                By.xpath("//div[@class = 'pay-description__text']//span")
+                By.xpath(PayComponentPaths.PAY_DESCRIPTION_BLOCK_LOCATOR.getPath())
         ).getText();
         String phoneNumber = payDescription.substring(payDescription.lastIndexOf(":") + 4);
 
         // сохраняю сначала в переменную, чтобы по индексу найти пробел между суммой и названием валюты
         // дальше взять только сумму введённую пользователем
         String priceDescription = driver.findElement(
-                By.xpath("//div[@class='pay-description__cost']//span[contains(text(), 'BYN')]")
+                By.xpath(PayComponentPaths.PRICE_DESCRIPTION_BLOCK_LOCATOR.getPath())
         ).getText();
         String price = priceDescription.substring(0, priceDescription.lastIndexOf(" "));
 
         // здесь то же самое - сначала получаю весь текст из кнопки, дальше беру оттуда только сумму
         String priceOnButtonDescription = driver.findElement(
-                By.xpath("//div[@class='card-page__card']//button[@type='submit']")
+                By.xpath(PayComponentPaths.BUTTON_SENDING_PAYMENT_LOCATOR.getPath())
         ).getText();
         String priceOnButton = priceOnButtonDescription.substring(
                 priceOnButtonDescription.indexOf(" ") + 1, priceOnButtonDescription.lastIndexOf(" ")
@@ -169,19 +146,19 @@ public class PayComponent {
         Map<String, String> cardInfo = new HashMap<>();
 
         String cardNumberLabel = driver.findElement(
-                By.xpath("//form[contains(@class, 'ng-tns-c61-0')]//div[@class='content ng-tns-c46-1']//label")
+                By.xpath(PayComponentPaths.CARD_NUMBER_LABEL_LOCATOR.getPath())
         ).getText();
 
         String validityPeriodLabel = driver.findElement(
-                By.xpath("//form[contains(@class, 'ng-tns-c61-0')]//div[@class='content ng-tns-c46-4']//label")
+                By.xpath(PayComponentPaths.VALIDITY_PERIOD_LABEL_LOCATOR.getPath())
         ).getText();
 
         String cvcLabel = driver.findElement(
-                By.xpath("//form[contains(@class, 'ng-tns-c61-0')]//div[@class='content ng-tns-c46-5']//label")
+                By.xpath(PayComponentPaths.CVC_LABEL_LOCATOR.getPath())
         ).getText();
 
         String holderNameLabel = driver.findElement(
-                By.xpath("//form[contains(@class, 'ng-tns-c61-0')]//div[@class='content ng-tns-c46-3']//label")
+                By.xpath(PayComponentPaths.HOLDER_NAME_LABEL_LOCATOR.getPath())
         ).getText();
 
         cardInfo.put("cardNumberLabel", cardNumberLabel);
@@ -190,6 +167,12 @@ public class PayComponent {
         cardInfo.put("holderNameLabel", holderNameLabel);
 
         return cardInfo;
+    }
+
+    public void clearFieldsFromPayForm() {
+        driver.findElement(By.xpath(PayComponentPaths.PHONE_NUMBER_INPUT_LOCATOR.getPath())).clear();
+        driver.findElement(By.xpath(PayComponentPaths.PAY_SUM_INPUT_LOCATOR.getPath())).clear();
+        driver.findElement(By.xpath(PayComponentPaths.EMAIL_INPUT_LOCATOR.getPath())).clear();
     }
 
 }
