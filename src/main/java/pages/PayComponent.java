@@ -7,8 +7,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class PayComponent {
     private WebDriver driver;
@@ -48,6 +47,14 @@ public class PayComponent {
     }
 
     public WebElement getPayedFrame() {
+
+        // изменить метод так, чтобы он сразу после всех проверок переключал драйвер на фрейм
+        // и назвать его например switch payed frame
+        // тогда получится для получения (и переключения на платежный фрэйм) нужно будет вызвать свитч пэйд фрэйм
+        // а для закрытия просто клосе пэйд фрэйм, который будет закрывать закрывать открытый фрэйм
+        // и переключаться обратно
+
+
         driver.findElement(phoneNumberInputLocator).sendKeys("297777777");
         driver.findElement(paySumInputLocator).sendKeys("10");
         driver.findElement(emailInputLocator).sendKeys("test@mail.ru");
@@ -55,15 +62,46 @@ public class PayComponent {
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 
-        return wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.xpath("//iframe[@class='bepaid-iframe']"))
+        WebElement frame =  wait.until(
+                ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//iframe[@class='bepaid-iframe']"))
         );
+
+        wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.xpath("//div[contains(@class, 'app-wrapper__content-container')]")));
+
+        // здесь нужны 2 проверки, 1я чтобы убедиться что фрэйм в принципе доступен для выбора,
+        // 2я чтобы убедиться что асинхронный код внутри фрэйма подгрузился
+        // и тогда будет 100% рабочий фрэйм в котором всё можно найти
+
+        return frame;
+    }
+
+    public void switchPayedFrame(String phoneNumber, String paySum) {
+        driver.findElement(phoneNumberInputLocator).sendKeys(phoneNumber);
+        driver.findElement(paySumInputLocator).sendKeys(paySum);
+
+        driver.findElement(submitPayConnectionBtn).click();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+
+        wait.until(
+                ExpectedConditions.frameToBeAvailableAndSwitchToIt(
+                        By.xpath("//iframe[@class='bepaid-iframe']")));
+
+        wait.until(
+                ExpectedConditions.elementToBeClickable(
+                        By.xpath("//div[contains(@class, 'app-wrapper__content-container')]")));
     }
 
     public void closePayedFrame() {
-        WebElement frame = driver.findElement(By.xpath("//iframe[@class='bepaid-iframe']"));
+//        WebElement frame = driver.findElement(By.xpath("//iframe[@class='bepaid-iframe']"));
+//
+//        driver.switchTo().frame(frame);
 
-        driver.switchTo().frame(frame);
+        // здесь по идее вызов метода уже будет означать что драйвер переключен на платежный фрэйм
+        // поэтому без логики переключения, сразу закрытие и переключение на дэфольную страницу
         driver.findElement(By.xpath("//div[@class='header__close-button']")).click();
         driver.switchTo().defaultContent();
     }
@@ -82,20 +120,58 @@ public class PayComponent {
     }
 
     private List<WebElement> getFieldsFromActivePayedForm() {
-      return driver.findElements(By.xpath(
+        return driver.findElements(By.xpath(
                 basePathComponent + "//form[contains(@class, 'opened')]//input"
         ));
-    };
+    }
+
+    ;
 
 
     public List<String> getFieldPlaceholdersActiveForm(String serviceTitle) {
         List<String> fieldPlaceholders = new ArrayList<>();
         changePaymentServices(serviceTitle);
 
-        for(WebElement field : getFieldsFromActivePayedForm()) {
+        for (WebElement field : getFieldsFromActivePayedForm()) {
             fieldPlaceholders.add(field.getAttribute("placeholder"));
         }
 
         return fieldPlaceholders;
     }
+
+    public Map<String, String> getValueFieldFromPayedFrame() {
+        Map<String, String> payInfo = new HashMap<>();
+
+        // получить полностью текст с видом услуги и номером телефона, чтобы дальше извлечь оттуда только номер
+        // lastIndexOf + 4 сделал для того чтобы отсеч код и оставить только цифры введённые пользователем
+        String payDescription = driver.findElement(
+//                By.xpath("//div[contains(@class, 'pay-description')]//span[@class='pay-description__text']")
+                By.xpath("//div[@class = 'pay-description__text']//span")
+        ).getText();
+        String phoneNumber = payDescription.substring(payDescription.lastIndexOf(":") + 4);
+
+        // сохраняю сначала в переменную, чтобы по индексу найти пробел между суммой и названием валюты
+        // дальше взять только сумму введённую пользователем
+        String priceDescription = driver.findElement(
+                By.xpath("//div[@class='pay-description__cost']//span[contains(text(), 'BYN')]")
+        ).getText();
+        String price = priceDescription.substring(0, priceDescription.lastIndexOf(" "));
+
+        // здесь то же самое - сначала получаю весь текст из кнопки, дальше беру оттуда только сумму
+        String priceOnButtonDescription = driver.findElement(
+                By.xpath("//div[@class='card-page__card']//button[@type='submit']")
+        ).getText();
+        String priceOnButton = priceOnButtonDescription.substring(
+                priceOnButtonDescription.indexOf(" ") + 1, priceOnButtonDescription.lastIndexOf(" ")
+        );
+
+        payInfo.put("price", price);
+        payInfo.put("phoneNumber", phoneNumber);
+        payInfo.put("priceOnButton", priceOnButton);
+
+        return payInfo;
+    }
+
+
+
 }
