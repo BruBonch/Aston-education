@@ -48,6 +48,19 @@ public class PayComponentTest {
     }
 
     @Test
+    public void checkDisplayedPayPartnersLogoFromPayedFrame() {
+        payComponent.switchPayedFrame("297777777", "28");
+        List<WebElement> logoPayPartnersList = payComponent.getLogoPayPartnersListFromPayedFrame();
+
+        for(WebElement logo : logoPayPartnersList) {
+            Assert.assertTrue(
+                    (logo.getSize().width > 0 && logo.isDisplayed())
+                    , logo.getAttribute("src") + " не отображается на странице"
+            );
+        }
+    }
+
+    @Test
     public void clickOnLinkServiceInfo() {
         String urlAfterClick = payComponent.getUrlAfterClickOnServiceInfo();
         Assert.assertEquals(
@@ -68,8 +81,7 @@ public class PayComponentTest {
         String price = "20";
 
         payComponent.switchPayedFrame(phoneNumber, price);
-        Map<String,String> result = payComponent.getValueFieldFromPayedFrame();
-        System.out.println(result);
+        Map<String,String> result = payComponent.getValueFieldsFromPayedFrame();
 
         for (Map.Entry<String, String> entry : result.entrySet()) {
             switch (entry.getKey()) {
@@ -134,7 +146,7 @@ public class PayComponentTest {
         }
     }
 
-    @Test()
+    @Test
     public void checkPlaceholdersInstallmentPayedForm() {
         List<String> fieldsPlaceholders = payComponent.getFieldPlaceholdersActiveForm("Рассрочка");
 
@@ -155,7 +167,7 @@ public class PayComponentTest {
         }
     }
 
-    @Test()
+    @Test
     public void checkPlaceholdersArrearsForm() {
         List<String> fieldsPlaceholders = payComponent.getFieldPlaceholdersActiveForm("Задолженность");
 
@@ -175,4 +187,34 @@ public class PayComponentTest {
             }
         }
     }
+
+    @Test
+    public void checkLabelsCardInfo() {
+        String phoneNumber = "297777777";
+        String price = "20";
+
+        payComponent.switchPayedFrame(phoneNumber, price);
+        Map<String,String> result = payComponent.getLabelFieldsFromPayedFrame();
+
+        for (Map.Entry<String, String> entry : result.entrySet()) {
+            switch (entry.getKey()) {
+                case "cardNumberLabel" :
+                    Assert.assertEquals(entry.getValue(), "Номер карты");
+                    break;
+                case "validityPeriodLabel" :
+                    Assert.assertEquals(entry.getValue(), "Срок действия");
+                    break;
+                case "cvcLabel" :
+                    Assert.assertEquals(entry.getValue(), "CVC");
+                    break;
+                case "holderNameLabel" :
+                    Assert.assertEquals(entry.getValue(), "Имя держателя (как на карте)");
+                    break;
+            }
+        }
+
+        payComponent.closePayedFrame();
+    }
+
+
 }
