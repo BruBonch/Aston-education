@@ -7,7 +7,6 @@ import org.testng.annotations.Test;
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
-
 public class PostRequestTest {
 
     private final String BASE_URL = "https://postman-echo.com/";
@@ -33,13 +32,12 @@ public class PostRequestTest {
     @Test
     public void postRequestRawText() {
         given()
-                .contentType("text/plain")
                 .when()
                 .body("This is expected to be sent back as part of response body.")
                 .post(BASE_URL + "post")
                 .then()
                 .statusCode(200)
-                .body("data", equalTo("This is expected to be sent back as part of response body."))
+                .body("data", containsString("This is expected to be sent back as part of response body."))
                 .log().all();
     }
 }

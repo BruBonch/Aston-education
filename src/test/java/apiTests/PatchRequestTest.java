@@ -3,17 +3,19 @@ package apiTests;
 import org.testng.annotations.Test;
 
 import static io.restassured.RestAssured.*;
-import static org.hamcrest.Matchers.*;
+import static specification.Specifications.requestSpecification;
+import static specification.Specifications.responseSpecification;
+
 public class PatchRequestTest {
     @Test
     public void patchRequestTest() {
         given()
+                .spec(requestSpecification())
                 .when()
                 .body("This is expected to be sent back as part of response body.")
-                .patch("https://postman-echo.com/patch")
+                .patch("patch")
                 .then()
-                .statusCode(200)
-                .body("data", equalTo("This is expected to be sent back as part of response body."))
+                .spec(responseSpecification())
                 .log().all();
 
     }

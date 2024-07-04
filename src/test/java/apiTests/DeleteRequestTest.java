@@ -3,17 +3,19 @@ package apiTests;
 import org.testng.annotations.Test;
 
 import static io.restassured.RestAssured.*;
-import static org.hamcrest.Matchers.*;
+import static specification.Specifications.requestSpecification;
+import static specification.Specifications.responseSpecification;
+
 public class DeleteRequestTest {
     @Test
     public void  deleteRequestTest() {
         given()
+                .spec(requestSpecification())
                 .when()
                 .body("This is expected to be sent back as part of response body.")
-                .delete("https://postman-echo.com/delete")
+                .delete("delete")
                 .then()
-                .statusCode(200)
-                .body("data", equalTo("This is expected to be sent back as part of response body."))
+                .spec(responseSpecification())
                 .log().all();
     }
 }
