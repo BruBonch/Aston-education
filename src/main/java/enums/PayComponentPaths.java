@@ -1,7 +1,6 @@
 package enums;
 
 public enum PayComponentPaths {
-    BASE_PATH_COMPONENT("//section[@class='pay']"),
     COMPONENT_TITLE_LOCATOR("//section[@class='pay']//h2"),
     PHONE_NUMBER_INPUT_LOCATOR("//section[@class='pay']//input[@id='connection-phone']"),
     PAY_SUM_INPUT_LOCATOR("//section[@class='pay']//input[@id='connection-sum']"),
