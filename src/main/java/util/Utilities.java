@@ -1,4 +1,4 @@
-package Util;
+package util;
 
 public class Utilities {
     public static String getFloatingPointPaySum(String paySum) {
