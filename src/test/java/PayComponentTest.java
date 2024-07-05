@@ -1,9 +1,8 @@
-import Util.Utilities;
+import util.Utilities;
 import enums.PayComponentPaths;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -19,7 +18,7 @@ public class PayComponentTest {
 
     @BeforeClass
     public void setUp() {
-        driver = new ChromeDriver();
+        driver = WebDriverSingleton.getDriverInstance();
         driver.get("http://mts.by");
         driver.manage().window().fullscreen();
         payComponent = new PayComponent(driver);
@@ -31,13 +30,13 @@ public class PayComponentTest {
         driver.quit();
     }
 
-    @Test
+    @Test(description = "Проверка заголовка блока оплаты")
     public void checkComponentTitle() {
         String componentTitle = payComponent.getComponentTitle();
         Assert.assertEquals(componentTitle, "Онлайн пополнение без комиссии");
     }
 
-    @Test
+    @Test(description = "Проверка отображения логотипов платежных партнеров")
     public void checkDisplayedPayPartnersLogo() {
         List<WebElement> logoPayPartnersList = payComponent.getLogoPayPartnersList();
 
@@ -49,7 +48,7 @@ public class PayComponentTest {
         }
     }
 
-    @Test
+    @Test(description = "Проверка отображения логотипов платежных партнеров внутри платежного фрэйма")
     public void checkDisplayedPayPartnersLogoFromPayedFrame() {
         payComponent.switchPayedFrame("297777777", "28");
 
@@ -66,7 +65,7 @@ public class PayComponentTest {
         payComponent.clearFieldsFromPayForm();
     }
 
-    @Test
+    @Test(description = "Проверка работоспособности ссылки с информацией о сервисе")
     public void clickOnLinkServiceInfo() {
         String urlAfterClick = payComponent.getUrlAfterClickOnServiceInfo();
         Assert.assertEquals(
@@ -74,7 +73,7 @@ public class PayComponentTest {
                 "https://www.mts.by/help/poryadok-oplaty-i-bezopasnost-internet-platezhey/");
     }
 
-    @Test
+    @Test(description = "Проверка отображения платежного фрэйма")
     public void checkDisplayedPayedFrame() {
         payComponent.switchPayedFrame("297777777", "20");
         Assert.assertTrue(
@@ -86,7 +85,7 @@ public class PayComponentTest {
         payComponent.clearFieldsFromPayForm();
     }
 
-    @Test
+    @Test(description = "Проверка суммы и номера телефона отображаемых в платежном фрэйме")
     public void checkPayInfo() {
         String phoneNumber = "297777777";
         String price = "20";
@@ -116,7 +115,7 @@ public class PayComponentTest {
 
     // далее будет 4 очень похожих метода, не придумал как можно более универсально сделать
     // какое то количество кода в теле всё таки меняется, поэтому решил сделать так
-    @Test
+    @Test(description = "Проверка плэйсхолдеров в форме оплаты сотовой связи")
     public void checkPlaceholdersConnectionPayedForm() {
         List<String> fieldsPlaceholders = payComponent.getFieldPlaceholdersActiveForm("Услуги связи");
 
@@ -137,7 +136,7 @@ public class PayComponentTest {
         }
     }
 
-    @Test
+    @Test(description = "Проверка плэйсхолдеров в форме оплаты интернета")
     public void checkPlaceholdersInternetPayedForm() {
         List<String> fieldsPlaceholders = payComponent.getFieldPlaceholdersActiveForm("Домашний интернет");
 
@@ -158,7 +157,7 @@ public class PayComponentTest {
         }
     }
 
-    @Test
+    @Test(description = "Проверка плэйсхолдеров в форме оплаты рассрочки")
     public void checkPlaceholdersInstallmentPayedForm() {
         List<String> fieldsPlaceholders = payComponent.getFieldPlaceholdersActiveForm("Рассрочка");
 
@@ -179,7 +178,7 @@ public class PayComponentTest {
         }
     }
 
-    @Test
+    @Test(description = "Проверка плэйсхолдеров в форме оплаты задолженности")
     public void checkPlaceholdersArrearsForm() {
         List<String> fieldsPlaceholders = payComponent.getFieldPlaceholdersActiveForm("Задолженность");
 
@@ -200,8 +199,7 @@ public class PayComponentTest {
         }
     }
 
-    // group
-    @Test
+    @Test(description = "Проверка подписей полей для ввода реквизитов карты")
     public void checkLabelsCardInfo() {
         String phoneNumber = "297777777";
         String price = "20";
