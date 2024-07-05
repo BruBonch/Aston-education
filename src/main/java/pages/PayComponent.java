@@ -1,6 +1,7 @@
 package pages;
 
 import enums.PayComponentPaths;
+import io.qameta.allure.Step;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -20,7 +21,6 @@ public class PayComponent {
     public void rejectCookies() {
         driver.findElement(By.xpath(PayComponentPaths.COOKIES_CANCEL_BTN_LOCATOR.getPath())).click();
     }
-
     public String getComponentTitle() {
         return driver.findElement(
                         By.xpath(PayComponentPaths.COMPONENT_TITLE_LOCATOR.getPath()))
@@ -35,8 +35,8 @@ public class PayComponent {
 
     public List<WebElement> getLogoPayPartnersListFromPayedFrame() {
         return driver.findElement(
-                By.xpath("//form[contains(@class, 'ng-tns-c61-0')]//div[contains(@class, 'cards-brands')]")
-        ).findElements(By.xpath(".//img"));
+                By.xpath(PayComponentPaths.CARDS_BRANDS_PAYED_FRAME_LOCATOR.getPath())
+        ).findElements(By.xpath(PayComponentPaths.IMG_LOCATOR.getPath()));
     }
 
     public String getUrlAfterClickOnServiceInfo() {
@@ -47,7 +47,7 @@ public class PayComponent {
             driver.navigate().back();
         }
     }
-
+    @Step("Переключить драйвер на активный платежный фрейм, после ожидания загрузки данных фрэйма")
     public void switchPayedFrame(String phoneNumber, String paySum) {
         driver.findElement(By.xpath(PayComponentPaths.PHONE_NUMBER_INPUT_LOCATOR.getPath())).sendKeys(phoneNumber);
         driver.findElement(By.xpath(PayComponentPaths.PAY_SUM_INPUT_LOCATOR.getPath())).sendKeys(paySum);
@@ -69,11 +69,13 @@ public class PayComponent {
                 ));
     }
 
+    @Step("Закрыть активный фрэйм")
     public void closePayedFrame() {
         driver.findElement(By.xpath(PayComponentPaths.PAYED_FRAME_CLOSE_BTN_LOCATOR.getPath())).click();
         driver.switchTo().defaultContent();
     }
 
+    @Step("Сменить платежный сервис")
     private void changePaymentServices(String serviceTitle) {
         driver.findElement(By.xpath(PayComponentPaths.CHANGE_SERVICES_BTN_LOCATOR.getPath())).click();
         List<WebElement> selectList = driver.
@@ -90,15 +92,14 @@ public class PayComponent {
         }
     }
 
+    @Step("Получить поля для ввода данных, у выбранного сервиса оплаты")
     private List<WebElement> getFieldsFromActivePayedForm() {
         return driver.findElements(By.xpath(
                 PayComponentPaths.ACTIVE_PAYED_FORM_LOCATOR.getPath()
         ));
     }
 
-    ;
-
-
+    @Step("Получить плэйсходеры полей для ввода данных, у выбранного сервиса оплаты")
     public List<String> getFieldPlaceholdersActiveForm(String serviceTitle) {
         List<String> fieldPlaceholders = new ArrayList<>();
         changePaymentServices(serviceTitle);
@@ -110,6 +111,7 @@ public class PayComponent {
         return fieldPlaceholders;
     }
 
+    @Step("Получить значения полей платежного фрейма, ранее введенные в форму оплаты")
     public Map<String, String> getValueFieldsFromPayedFrame() {
         Map<String, String> payInfo = new HashMap<>();
 
@@ -142,6 +144,7 @@ public class PayComponent {
         return payInfo;
     }
 
+    @Step("Получить подписи полей для ввода реквизитов карты")
     public Map<String, String> getLabelFieldsFromPayedFrame() {
         Map<String, String> cardInfo = new HashMap<>();
 
@@ -169,6 +172,7 @@ public class PayComponent {
         return cardInfo;
     }
 
+    @Step("Очистить поля формы оплаты")
     public void clearFieldsFromPayForm() {
         driver.findElement(By.xpath(PayComponentPaths.PHONE_NUMBER_INPUT_LOCATOR.getPath())).clear();
         driver.findElement(By.xpath(PayComponentPaths.PAY_SUM_INPUT_LOCATOR.getPath())).clear();
